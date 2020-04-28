@@ -24,8 +24,20 @@ ssh_executable=scp
 $debug && echo "ssh_args: $ssh_args"
 $debug && echo "ssh_executable: $ssh_executable"
 
-host="$(echo $1 | cut -d : -f 1)"
-path="$(echo $1 | cut -d : -f 2-)"
+if [[ "$1" == *":"* ]]; then
+  host="$(echo $1 | cut -d : -f 1)"
+  remotepath="$(echo $1 | cut -d : -f 2-)"
+  copy_from="remote"
+else
+  localpath="$1"
+  shift
+  host="$(echo $1 | cut -d : -f 1)"
+  remotepath="$(echo $1 | cut -d : -f 2-)"
+  copy_from="local"
+fi
+
+$debug && echo "copying from $copy_from"
+
 # All other arguments are ssh arguments
 shift
 
@@ -69,5 +81,12 @@ if [ -n "$ansible_user" ]; then ansible_user="${ansible_user}@"; fi
 # If port is set, add it to ssh arguments
 if [ -n "$ansible_port" ]; then ssh_args="$ssh_args -p $ansible_port"; fi
 
-$debug && echo result command: ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ansible_user}${ansible_host}:"${path}" "$@"
-exec ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ansible_user}${ansible_host}:"${path}" "$@"
+if [[ "$copy_from" == "local" ]]; then
+  $debug && echo "result command: ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${localpath} ${ansible_user}${ansible_host}:${remotepath} $@"
+  exec ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} "${localpath}" "${ansible_user}${ansible_host}:"${remotepath}" $@"
+fi
+
+if [[ "$copy_from" == "remote" ]]; then
+  $debug && echo "result command: ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ansible_user}${ansible_host}:${remotepath} ${localpath} $@"
+  exec ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ansible_user}${ansible_host}:"${remotepath}" "${localpath}" "$@"
+fi
