@@ -24,6 +24,13 @@ ssh_executable=scp
 $debug && echo "ssh_args: $ssh_args"
 $debug && echo "ssh_executable: $ssh_executable"
 
+case "$1" in
+  -*)
+    ssh_args="$ssh_args $1"
+    shift
+    ;;
+esac
+
 if [[ "$1" == *":"* ]]; then
   host="$(echo $1 | cut -d : -f 1)"
   remotepath="$(echo $1 | cut -d : -f 2-)"
