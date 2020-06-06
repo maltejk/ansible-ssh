@@ -26,10 +26,12 @@ $debug && echo "ssh_executable: $ssh_executable"
 
 case "$1" in
   -*)
-    ssh_args="$ssh_args $1"
+    ssh_commandline_args="$ssh_commandline_args $1"
     shift
     ;;
 esac
+
+$debug && echo "ssh_commandline_args: $ssh_commandline_args"
 
 if [[ "$1" == *":"* ]]; then
   host="$(echo $1 | cut -d : -f 1)"
@@ -89,11 +91,11 @@ if [ -n "$ansible_user" ]; then ansible_user="${ansible_user}@"; fi
 if [ -n "$ansible_port" ]; then ssh_args="$ssh_args -p $ansible_port"; fi
 
 if [[ "$copy_from" == "local" ]]; then
-  $debug && echo "result command: ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${localpath} ${ansible_user}${ansible_host}:${remotepath} $@"
-  exec ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} "${localpath}" "${ansible_user}${ansible_host}:"${remotepath}" $@"
+  $debug && echo "result command: ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ssh_commandline_args} ${localpath} ${ansible_user}${ansible_host}:${remotepath}"
+  exec ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ssh_commandline_args} "${localpath}" ${ansible_user}${ansible_host}:"${remotepath}"
 fi
 
 if [[ "$copy_from" == "remote" ]]; then
-  $debug && echo "result command: ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ansible_user}${ansible_host}:${remotepath} ${localpath} $@"
-  exec ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ansible_user}${ansible_host}:"${remotepath}" "${localpath}" "$@"
+  $debug && echo "result command: ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ssh_commandline_args} ${ansible_user}${ansible_host}:${remotepath} ${localpath}"
+  exec ${ssh_executable} ${ssh_args} ${ansible_ssh_common_args} ${ansible_ssh_extra_args} ${ssh_commandline_args} ${ansible_user}${ansible_host}:"${remotepath}" "${localpath}"
 fi
