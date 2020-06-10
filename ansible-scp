@@ -37,6 +37,8 @@ if [[ "$1" == *":"* ]]; then
   host="$(echo $1 | cut -d : -f 1)"
   remotepath="$(echo $1 | cut -d : -f 2-)"
   copy_from="remote"
+  shift
+  localpath="$1"
 else
   localpath="$1"
   shift
