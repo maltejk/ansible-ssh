@@ -1,6 +1,6 @@
 #!/bin/bash
 #set -x
-debug=/bin/true
+debug=true
 
 for program in ansible-config ansible-inventory jq; do
     which "$program" > /dev/null || { echo "ERROR: not found: $program"; exit 1; }
